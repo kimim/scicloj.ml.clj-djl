@@ -1,0 +1,5 @@
+#+TITLE: scicloj.ml.clj-djl
+
+clj-djl modles for metamorph.ml and scicloj.ml
+
+see examples here: [[https://github.com/scicloj/scicloj.ml-tutorials/blob/main/src/scicloj/ml/third_party.clj][scicloj.ml-tutorials/src/scicloj/ml/third_party]]
