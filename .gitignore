@@ -1,0 +1,5 @@
+.clj-kondo
+.cpcache
+.lsp
+pom.xml
+target
