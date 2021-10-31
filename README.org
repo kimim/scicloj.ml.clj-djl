@@ -3,3 +3,10 @@
 clj-djl models for metamorph.ml and scicloj.ml
 
 see examples here: [[https://github.com/scicloj/scicloj.ml-tutorials/blob/main/src/scicloj/ml/third_party.clj][scicloj.ml-tutorials/src/scicloj/ml/third_party]]
+
+Test with different version of clj-djl:
+
+#+begin_src sh
+clojure -M:test         # latest
+clojure -M:test-0.1.6   # other version
+#+end_src
