@@ -32,7 +32,7 @@
   (->
    (ds/->dataset
     "http://d2l-data.s3-accelerate.amazonaws.com/kaggle_house_pred_test.csv")
-   (ds/add-column (ds/new-column  "SalePrice" 0))))
+   (ds/add-column (ds/new-column  "SalePrice" [0]))))
 
 
 (defn numeric-features [ds]
@@ -86,9 +86,8 @@
         prediction
         (-> (preprocess (ds/concat  test-ds train-ds)
                         (range (ds/row-count test-ds)))
-            (ml/predict trained-model))
+            (ml/predict trained-model))]
 
-        _    (def prediction prediction)]
     (is (= 1459
-           (count-small
-            (get prediction "SalePrice"))))))
+         (count-small
+          (get prediction "SalePrice"))))))
