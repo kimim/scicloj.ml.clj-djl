@@ -13,8 +13,12 @@
   [ndm dataframe]
   (nd/t (nd/create ndm (map vec (dataset/columns dataframe)))))
 
+(dataset/shape feature-ds)
+(dataset/column-names feature-ds)
 (defn- train
   [feature-ds label-ds options]
+  (def feature-ds feature-ds)
+  (def label-ds label-ds)
   (let [ndm (nd/new-base-manager)
         train-nd (->ndarray ndm feature-ds)
         label-nd (->ndarray ndm label-ds)
@@ -28,7 +32,8 @@
         temp-file-name (.getName temp-file)
         model-spec (:model-spec options)]
 
-    (with-open [model (m/model {:name (:name model-spec) :block ((:block-fn model-spec))})
+    (with-open [model (m/model {:name (:name model-spec)
+                                :block ((:block-fn model-spec))})
                 trainer (t/trainer model (:model-cfg options))]
       (t/initialize trainer (:initial-shape options))
       (t/set-metrics trainer (t/metrics))
