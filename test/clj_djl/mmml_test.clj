@@ -15,6 +15,7 @@
             [tech.v3.datatype.functional :as dfn]
             [clj-djl.nn.parameter :as param]))
 
+(tablecloth.pipeline/update-columns)
 (defn count-small [seq]
   (count
    (filter
@@ -104,22 +105,35 @@
            (count-small
             (get prediction "SalePrice"))))))
 
+
+(defn update-columns-by-meta [column-selector update-fn]
+  (fn [ctx]
+    (let [col-names (ds/column-names (ctx :metamorph/data) column-selector :all)]
+      (update ctx :metamorph/data #(ds/update-columns % col-names update-fn)))))
+
+(defn numeric-feature? [meta]
+  (and
+   (tablecloth.api.utils/type? :numerical (meta :datatype))
+   (not (meta :inference-target?))))
+
 (deftest train-predict-2
   (let [ preprocss-pipe-fn
         (ml/pipeline
          (mm/drop-columns ["Id"])
          (mm/replace-missing :type/numerical :value 0)
          (mm/replace-missing :!type/numerical :value "None")
+         (mm/set-inference-target "SalePrice"
+         ;; (mm/update-columns numeric-feature? :all (fn [col] (dfn// (dfn/- col (dfn/mean col)
+         ;;                                                            (dfn/standard-deviation col)))))
+          (update-columns-by-meta numeric-feature?
+                                  (fn [col] (dfn// (dfn/- col (dfn/mean col)
+                                                         (dfn/standard-deviation col))))))
          (mm/set-inference-target "SalePrice")
-         (ml/lift update-columns numeric-features
-                  #(dfn// (dfn/- % (dfn/mean %)
-                                 (dfn/standard-deviation %))))
-         (mm/set-inference-target "SalePrice")
-         (ml/lift update-columns ["SalePrice"]
-                  #(dfn// % (dfn/mean %)))
+         (mm/update-column "SalePrice" #(dfn// % (dfn/mean %)))
          (mm/set-inference-target "SalePrice"))
 
         preprocessed-full-ds (:metamorph/data (ml/fit-pipe (ds/concat train-ds test-ds) preprocss-pipe-fn))
+
 
 
         final-pipe-fn
