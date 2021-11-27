@@ -15,7 +15,7 @@
             [tech.v3.datatype.functional :as dfn]
             [clj-djl.nn.parameter :as param]))
 
-(tablecloth.pipeline/update-columns)
+
 (defn count-small [seq]
   (count
    (filter
@@ -122,12 +122,12 @@
          (mm/drop-columns ["Id"])
          (mm/replace-missing :type/numerical :value 0)
          (mm/replace-missing :!type/numerical :value "None")
-         (mm/set-inference-target "SalePrice"
+         (mm/set-inference-target "SalePrice")
          ;; (mm/update-columns numeric-feature? :all (fn [col] (dfn// (dfn/- col (dfn/mean col)
          ;;                                                            (dfn/standard-deviation col)))))
-          (update-columns-by-meta numeric-feature?
-                                  (fn [col] (dfn// (dfn/- col (dfn/mean col)
-                                                         (dfn/standard-deviation col))))))
+         (update-columns-by-meta numeric-feature?
+                                 (fn [col] (dfn// (dfn/- col (dfn/mean col)
+                                                        (dfn/standard-deviation col)))))
          (mm/set-inference-target "SalePrice")
          (mm/update-column "SalePrice" #(dfn// % (dfn/mean %)))
          (mm/set-inference-target "SalePrice"))

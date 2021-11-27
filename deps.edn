@@ -1,6 +1,8 @@
 {:paths ["src" "target/classes"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        scicloj/scicloj.ml {:mvn/version "0.1.0"}}
+        scicloj/metamorph.ml {:mvn/version "0.4.1"}
+        clj-djl/clj-djl        {:mvn/version "0.1.7"}}
+        
  :aliases {:codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}
                                 codox-theme-rdash/codox-theme-rdash {:mvn/version  "0.1.2"}}
                    :exec-fn codox.main/generate-docs
@@ -10,23 +12,23 @@
                                :output-path "docs"}}
 
            :nrepl
-           {:extra-deps {clj-djl/clj-djl        {:mvn/version "0.1.7"}
-                         nrepl/nrepl            {:mvn/version "0.9.0-beta3"}
+           {:extra-deps {nrepl/nrepl            {:mvn/version "0.9.0-beta3"}
                          refactor-nrepl/refactor-nrepl {:mvn/version "3.0.0-alpha13"}
                          cider/cider-nrepl {:mvn/version "0.27.2"}}
             :main-opts ["-m" "nrepl.cmdline" "--middleware"
                         "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}
            :test
            {:extra-paths ["test"]
-            :extra-deps {clj-djl/clj-djl        {:mvn/version "0.1.7"}
-                         lambdaisland/kaocha    {:mvn/version "1.60.945"}
+            :extra-deps {scicloj/scicloj.ml {:mvn/version "0.1.1"}}}
+
+           :runner
+           {:extra-deps {lambdaisland/kaocha {:mvn/version "1.60.945"}
                          org.clojure/test.check {:mvn/version "1.1.0"}}
-            :main-opts  ["-m" "kaocha.runner"]}
+            :main-opts ["-m" "kaocha.runner"]}
 
            :test-0.1.6
            {:extra-paths ["test"]
             :extra-deps {clj-djl/clj-djl        {:mvn/version "0.1.6"}
                          lambdaisland/kaocha    {:mvn/version "1.60.945"}
                          org.clojure/test.check {:mvn/version "1.1.0"}}
-            :main-opts  ["-m" "kaocha.runner"]}
-           }}
+            :main-opts  ["-m" "kaocha.runner"]}}}
