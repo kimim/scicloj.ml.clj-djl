@@ -13,12 +13,8 @@
   [ndm dataframe]
   (nd/t (nd/create ndm (map vec (dataset/columns dataframe)))))
 
-(dataset/shape feature-ds)
-(dataset/column-names feature-ds)
 (defn- train
   [feature-ds label-ds options]
-  (def feature-ds feature-ds)
-  (def label-ds label-ds)
   (let [ndm (nd/new-base-manager)
         train-nd (->ndarray ndm feature-ds)
         label-nd (->ndarray ndm label-ds)
