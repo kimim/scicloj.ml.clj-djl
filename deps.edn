@@ -1,7 +1,10 @@
 {:paths ["src" "target/classes"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        scicloj/metamorph.ml {:mvn/version "0.4.1"}
-        clj-djl/clj-djl        {:mvn/version "0.1.7"}}
+        scicloj/metamorph.ml {:mvn/version "0.6.0"}
+        clj-djl/clj-djl        {:mvn/version "0.1.8-SNAPSHOT"}
+        ai.djl.fasttext/fasttext-engine {:mvn/version "0.15.0"}
+        ai.djl/basicdataset {:mvn/version "0.15.0"}}
+        
         
  :aliases {:codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}
                                 codox-theme-rdash/codox-theme-rdash {:mvn/version  "0.1.2"}}
@@ -18,8 +21,8 @@
             :main-opts ["-m" "nrepl.cmdline" "--middleware"
                         "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}
            :test
-           {:extra-paths ["test"]
-            :extra-deps {scicloj/scicloj.ml {:mvn/version "0.1.1"}}}
+           {:extra-paths ["test"]}
+
 
            :runner
            {:extra-deps {lambdaisland/kaocha {:mvn/version "1.60.945"}

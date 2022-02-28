@@ -1,8 +1,11 @@
 (ns clj-djl.mmml-test
   (:require [clj-djl.mmml]
-            [scicloj.ml.dataset :as ds]
-            [scicloj.ml.metamorph :as mm]
-            [scicloj.ml.core :as ml]
+            [tech.v3.dataset :as ds]
+            [tech.v3.dataset.metamorph :as ds-mm]
+            [tablecloth.api :as tc]
+            [tablecloth.pipeline :as tc-mm]
+            [scicloj.metamorph.ml :as ml]
+            [scicloj.metamorph.core :as mm]
             [scicloj.metamorph.ml.categorical]
             [clojure.test :refer [deftest is]]
             [clj-djl.nn :as nn]
@@ -14,6 +17,7 @@
             [clj-djl.ndarray :as nd]
             [tech.v3.datatype.functional :as dfn]
             [clj-djl.nn.parameter :as param]))
+
 
 
 (defn count-small [seq]
@@ -105,10 +109,9 @@
            (count-small
             (get prediction "SalePrice"))))))
 
-
 (defn update-columns-by-meta [column-selector update-fn]
   (fn [ctx]
-    (let [col-names (ds/column-names (ctx :metamorph/data) column-selector :all)]
+    (let [col-names (tc/column-names (ctx :metamorph/data) column-selector :all)]
       (update ctx :metamorph/data #(ds/update-columns % col-names update-fn)))))
 
 (defn numeric-feature? [meta]
@@ -118,30 +121,30 @@
 
 (deftest train-predict-2
   (let [ preprocss-pipe-fn
-        (ml/pipeline
-         (mm/drop-columns ["Id"])
-         (mm/replace-missing :type/numerical :value 0)
-         (mm/replace-missing :!type/numerical :value "None")
-         (mm/set-inference-target "SalePrice")
+        (mm/pipeline
+         (ds-mm/drop-columns ["Id"])
+         (tc-mm/replace-missing :type/numerical :value 0)
+         (tc-mm/replace-missing :!type/numerical :value "None")
+         (ds-mm/set-inference-target "SalePrice")
          ;; (mm/update-columns numeric-feature? :all (fn [col] (dfn// (dfn/- col (dfn/mean col)
          ;;                                                            (dfn/standard-deviation col)))))
          (update-columns-by-meta numeric-feature?
                                  (fn [col] (dfn// (dfn/- col (dfn/mean col)
                                                         (dfn/standard-deviation col)))))
-         (mm/set-inference-target "SalePrice")
-         (mm/update-column "SalePrice" #(dfn// % (dfn/mean %)))
-         (mm/set-inference-target "SalePrice"))
+         (ds-mm/set-inference-target "SalePrice")
+         (ds-mm/update-column "SalePrice" #(dfn// % (dfn/mean %)))
+         (ds-mm/set-inference-target "SalePrice"))
 
-        preprocessed-full-ds (:metamorph/data (ml/fit-pipe (ds/concat train-ds test-ds) preprocss-pipe-fn))
+        preprocessed-full-ds (:metamorph/data (mm/fit-pipe (ds/concat train-ds test-ds) preprocss-pipe-fn))
 
 
 
         final-pipe-fn
-        (ml/pipeline
+        (mm/pipeline
          preprocss-pipe-fn
          (scicloj.metamorph.ml.categorical/transform-one-hot
           :!type/numerical :full)
-         (mm/model {:model-type :clj-djl/djl
+         (ml/model {:model-type :clj-djl/djl
                     :batchsize 64
                     :model-spec {:name "mlp" :block-fn net}
                     :model-cfg (cfg)
