@@ -64,12 +64,12 @@
    (map #(hash-map :class-name (.getClassName %)
                    :probability (.getProbability %)))))
 
-(defn predict-ft [feature-ds train-result top-k]
-  (let [model (FtModel. "my-model")
+(defn predict-ft [feature-ds thawed-model top-k]
+  (let [
         texts (->  (tc/columns feature-ds :as-seq) first seq)]
-    (.load model (.toPath (io/file (:model-file train-result))))
+
     (map
-     #(->maps (.classify model (str %) top-k))
+     #(->maps (.classify thawed-model (str %) top-k))
      texts)))
 
 
@@ -92,10 +92,15 @@
                                    target-categorical-maps
                                    top-k
                                    options]}]
-  (when (not  (= (tc/column-count feature-ds)))
-    (throw (ex-info "Dataset should have exactly one column." {:columns (tc/column-names feature-ds)})))
-  (let [ft-prediction
-        (predict-ft feature-ds thawed-model (or top-k 1))
+  (def thawed-model thawed-model)
+  (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
+
+  (let [top-k (or top-k 2)
+
+        _ (assert (> top-k 1) "top-k need to be at least 2")
+
+        ft-prediction
+        (predict-ft feature-ds thawed-model top-k)
 
         predictions-ds
         (->
@@ -107,8 +112,10 @@
 
          ds/->dataset
          (tc/pivot->wider [:class-name] [:probability])
-         (ds/drop-columns [:id])
-         (vary-meta assoc :model-type :classification))
+
+
+
+         (ds/drop-columns [:id]))
 
         predictions-with-label
         (->
@@ -117,7 +124,15 @@
           (first target-columns))
          (ds-cat/reverse-map-categorical-xforms))]
 
-
     predictions-with-label))
 
-(ml/define-model! :clj-djl/fasttext train predict {})
+(defn load-ft-model [path]
+  (prn :load-model path)
+  (let [model-instance (FtModel. "my-model")]
+
+    (.load model-instance (.toPath (io/file path)))
+    model-instance))
+
+(ml/define-model! :clj-djl/fasttext train predict
+  {:thaw-fn (fn [model]
+              (load-ft-model (:model-file model)))})
