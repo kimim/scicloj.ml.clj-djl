@@ -1,4 +1,4 @@
-(ns clj-djl.mmml
+(ns scicloj.ml.clj-djl.mmml
   (:require [clj-djl.model :as m]
             [clj-djl.ndarray :as nd]
             [clj-djl.nn :as nn]

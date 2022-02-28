@@ -1,4 +1,4 @@
-(ns clj-djl.fasttext
+(ns scicloj.ml.clj-djl.fasttext
   (:require [clojure.java.io :as io]
             [tablecloth.api :as tc]
             [tech.v3.dataset :as ds]
