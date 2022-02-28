@@ -1,5 +1,5 @@
-(ns clj-djl.fasttext-test
-  (:require [clj-djl.fasttext :as fasttext]
+(ns scicloj.ml.clj-djl.fasttext-test
+  (:require [scicloj.ml.clj-djl.fasttext :as fasttext]
             [clojure.test  :refer [deftest is] :as t]
             [scicloj.metamorph.ml :as ml]
             [tech.v3.dataset :as ds]))

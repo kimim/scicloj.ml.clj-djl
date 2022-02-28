@@ -1,5 +1,5 @@
-(ns clj-djl.mmml-test
-  (:require [clj-djl.mmml]
+(ns scicloj.ml.clj-djl.mmml-test
+  (:require [scicloj.ml.clj-djl.mmml]
             [tech.v3.dataset :as ds]
             [tech.v3.dataset.metamorph :as ds-mm]
             [tablecloth.api :as tc]
