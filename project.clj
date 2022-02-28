@@ -1,4 +1,4 @@
-(defproject scicloj/scicloj.ml.clj-djl "0.1.7"
+(defproject org.scicloj/scicloj.ml.clj-djl "0.1.7"
   :description "clj-djl modles for metamorph.ml and scicloj.ml"
   :url "http://github.com/scicloj/scicloj.ml.clj-djl"
   :license {:name "Apache License, Version 2.0"
