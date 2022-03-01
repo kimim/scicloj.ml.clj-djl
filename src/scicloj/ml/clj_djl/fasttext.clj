@@ -64,12 +64,19 @@
    (map #(hash-map :class-name (.getClassName %)
                    :probability (.getProbability %)))))
 
-(defn predict-ft [feature-ds thawed-model top-k]
+(defn classify [model text top-k]
+  (let [raw-classification (->maps (.classify model text top-k))]
+    (if-not (empty? raw-classification)
+      raw-classification
+      [{:class-name nil
+        :probability 0}])))
+
+(defn predict-ft [feature-ds model top-k]
   (let [
         texts (->  (tc/columns feature-ds :as-seq) first seq)]
 
     (map
-     #(->maps (.classify thawed-model (str %) top-k))
+     #(classify model (str %) top-k)
      texts)))
 
 
@@ -87,12 +94,12 @@
               (first label-columns)
               (first feature-columns))))
 
+
 (defn predict
   [feature-ds thawed-model {:keys [target-columns
                                    target-categorical-maps
                                    top-k
                                    options]}]
-  (def thawed-model thawed-model)
   (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
 
   (let [top-k (or top-k 2)
@@ -100,22 +107,22 @@
         _ (assert (> top-k 1) "top-k need to be at least 2")
 
         ft-prediction
-        (predict-ft feature-ds thawed-model top-k)
+        (->>
+         (predict-ft feature-ds thawed-model top-k)
+         (map
+          #(map (fn [m] (assoc m :id %1)) %2)
+          (range)))
+
 
         predictions-ds
         (->
-         (map
-          #(map (fn [m] (assoc m :id %1)) %2)
-          (range)
-          ft-prediction)
+         ft-prediction
          flatten
-
          ds/->dataset
-         (tc/pivot->wider [:class-name] [:probability])
-
-
-
+         (tc/pivot->wider [:class-name] [:probability] {:drop-missing? false})
+         (tc/order-by :id)
          (ds/drop-columns [:id]))
+
 
         predictions-with-label
         (->
@@ -134,5 +141,5 @@
     model-instance))
 
 (ml/define-model! :clj-djl/fasttext train predict
-  {:thaw-fn (fn [model]
-              (load-ft-model (:model-file model)))})
+   {:thaw-fn (fn [model]
+               (load-ft-model (:model-file model)))})
