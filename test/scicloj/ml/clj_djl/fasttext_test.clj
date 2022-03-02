@@ -16,7 +16,8 @@
   (let [model
         (ml/train (-> primary
                       (tech.v3.dataset.modelling/set-inference-target :is.primary))
-                  {:model-type :clj-djl/fasttext})
+                  {:model-type :clj-djl/fasttext
+                   :ft-training-config {:epoch 1}})
 
 
         prob-distribution

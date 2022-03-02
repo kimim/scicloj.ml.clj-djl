@@ -3,6 +3,7 @@
             [tablecloth.api :as tc]
             [tech.v3.dataset :as ds]
             [tech.v3.dataset.categorical :as ds-cat]
+            [camel-snake-kebab.core :as csk]
             [scicloj.metamorph.ml :as ml])
   (:import [ai.djl.fasttext FtModel FtTrainingConfig]
            [ai.djl.basicdataset.nlp CookingStackExchange]
@@ -30,7 +31,16 @@
       (tc/select-columns :fast-text)))
 
 
-(defn train-ft [ds label-col text-col]
+(defn do-opts [config m]
+  (doseq [[k v] m]
+    (let [method-name (str "opt" (csk/->PascalCaseString k))]
+      (clojure.lang.Reflector/invokeInstanceMethod
+        config
+        method-name
+        (into-array Object [v]))))
+  config)
+
+(defn train-ft [ds label-col text-col ft-training-config]
   (let [
         model-name "my-model"
         model (FtModel. "my-model")
@@ -39,14 +49,16 @@
         fasttext-file (java.nio.file.Files/createTempFile "fasttext" ".txt"
                                                           (into-array FileAttribute []))
         training-config
-
-        (..  (FtTrainingConfig/builder)
-             (setModelName model-name)
-             (setOutputDir temp-dir)
-             build)
+        (->
+         (..  (FtTrainingConfig/builder)
+              (setModelName model-name)
+              (setOutputDir temp-dir))
+         (do-opts ft-training-config)
+         .build)
+             
         model-file (str (.. temp-dir  toFile getPath)
-                    "/"
-                    model-name  ".bin")]
+                        "/"
+                        model-name  ".bin")]
     (-> ds
         (->fast-text-ds label-col text-col)
         (->fast-text-file! fasttext-file))
@@ -92,7 +104,8 @@
       (throw (ex-info "Dataset should have exactly one target column." {:columns label-columns})))
     (train-ft (tc/append feature-ds label-ds)
               (first label-columns)
-              (first feature-columns))))
+              (first feature-columns)
+              (get options :ft-training-config {}))))
 
 
 (defn predict
