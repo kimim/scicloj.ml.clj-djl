@@ -67,6 +67,7 @@
 
 
     {
+     :labels (map str (distinct (get ds label-col)))
      :model-file model-file}))
 
 
@@ -77,11 +78,14 @@
                    :probability (.getProbability %)))))
 
 (defn classify [model text top-k]
-  (let [raw-classification (->maps (.classify model text top-k))]
+  (let [raw-classification (->maps (.classify (:ft-model model) text top-k))]
+    (def raw-classification raw-classification)
     (if-not (empty? raw-classification)
       raw-classification
-      [{:class-name nil
-        :probability 0}])))
+      (map #(hash-map :class-name %
+                      :probability (/ 1 (count (:labels model))))
+       (:labels model)))))
+
 
 (defn predict-ft [feature-ds model top-k]
   (let [
@@ -155,4 +159,4 @@
 
 (ml/define-model! :clj-djl/fasttext train predict
    {:thaw-fn (fn [model]
-               (load-ft-model (:model-file model)))})
+               (assoc model :ft-model (load-ft-model (:model-file model))))})
