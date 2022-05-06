@@ -2,8 +2,8 @@
  :deps {org.clojure/clojure                {:mvn/version "1.10.3"}
         scicloj/metamorph.ml               {:mvn/version "0.6.0"}
         org.clojars.behrica/clj-djl        {:mvn/version "0.1.8"}
-        ai.djl.fasttext/fasttext-engine    {:mvn/version "0.15.0"}
-        ai.djl/basicdataset                {:mvn/version "0.15.0"}}
+        ai.djl.fasttext/fasttext-engine    {:mvn/version "0.16.0"}
+        ai.djl/basicdataset                {:mvn/version "0.16.0"}}
  
  
  :aliases {:codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}
