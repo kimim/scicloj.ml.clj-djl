@@ -4,7 +4,8 @@
             [tech.v3.dataset :as ds]
             [tech.v3.dataset.categorical :as ds-cat]
             [camel-snake-kebab.core :as csk]
-            [scicloj.metamorph.ml :as ml])
+            [scicloj.metamorph.ml :as ml]
+            [clojure.reflect])
   (:import [ai.djl.fasttext FtModel FtTrainingConfig TrainFastText FtTrainingConfig$FtLoss]
            [ai.djl.basicdataset.nlp CookingStackExchange]
            [ai.djl.basicdataset RawDataset]
