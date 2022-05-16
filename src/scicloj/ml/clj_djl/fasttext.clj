@@ -11,9 +11,6 @@
            [ai.djl.basicdataset RawDataset]
            [java.nio.file.attribute FileAttribute]))
 
-
-
-
 (defn opts-docu []
   (->>
    (FtTrainingConfig/builder)
@@ -22,9 +19,6 @@
    (filter #(clojure.string/starts-with? (:name %) "opt"))
    (map #(hash-map :name (csk/->kebab-case-keyword (clojure.string/replace (:name  %) "opt" ""))
                    :type (first  (:parameter-types %))))))
-
-
-
 
 (defn make-dataset [path]
   (reify RawDataset
@@ -59,54 +53,33 @@
 
 
 (defn train-ft [ds label-col text-col ft-training-config]
-  (def ds ds)
-  (def label-col label-col)
   (let [
 
         model-name "my-model"
-        model (FtModel. "my-model")
         temp-dir  (java.nio.file.Files/createTempDirectory "fasttext"
                                                            (into-array FileAttribute []))
         fasttext-file (java.nio.file.Files/createTempFile "fasttext" ".txt"
                                                           (into-array FileAttribute []))
+
         training-config
         (->
          (..  (FtTrainingConfig/builder)
               (setModelName model-name)
-              (setOutputDir temp-dir)
-              (optEpoch 5)
-              (optLoss (FtTrainingConfig$FtLoss/HS)))
-         ;; (do-opts ft-training-config)
+              (setOutputDir temp-dir))
+         (do-opts ft-training-config)
          .build)
-
-
-
-        _ (def training-config training-config)
-        _ (def fasttext-file fasttext-file)
 
         model-file (str (.. temp-dir  toFile getPath)
                         "/"
                         model-name  ".bin")
         _ (-> ds
               (->fast-text-ds label-col text-col)
-              (->fast-text-file! fasttext-file))
-
-        _ (comment
-            (TrainFastText/textClassification training-config (make-dataset fasttext-file)))
-
-        _ (comment
-            (TrainFastText/textClassification training-config (.. (CookingStackExchange/builder) build)))]
+              (->fast-text-file! fasttext-file))]
 
 
 
+    (TrainFastText/textClassification training-config (make-dataset fasttext-file))
     
-    ;; (def block block)
-    ;; (.getTrainingResult block)
-    ;; (.. model
-    ;;     (fit training-config (make-dataset fasttext-file)))
-    ;; (.. (CookingStackExchange/builder) build)
-
-
     {
      :classes (->
                (get ds label-col)
@@ -121,8 +94,11 @@
    (map #(hash-map :class-name (.getClassName %)
                    :probability (.getProbability %)))))
 
+
 (defn classify [model text top-k classes]
-  (let [raw-classification (->maps (.classify model text top-k))]
+  (let [raw-classification (->maps (.. model
+                                       getBlock
+                                       (classify text top-k)))]
     (if-not (empty? raw-classification)
       raw-classification
       (map
@@ -162,7 +138,6 @@
                                    target-categorical-maps
                                    top-k
                                    options]}]
-  (def thawed-model thawed-model)
   (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
 
   (let [top-k (or top-k 2)
@@ -177,7 +152,6 @@
           (range)))
 
 
-        _ (def ft-prediction ft-prediction)
         predictions-ds
         (->
          ft-prediction
