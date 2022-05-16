@@ -4,11 +4,21 @@
             [tech.v3.dataset :as ds]
             [tech.v3.dataset.categorical :as ds-cat]
             [camel-snake-kebab.core :as csk]
-            [scicloj.metamorph.ml :as ml])
-  (:import [ai.djl.fasttext FtModel FtTrainingConfig]
+            [scicloj.metamorph.ml :as ml]
+            [clojure.reflect])
+  (:import [ai.djl.fasttext FtModel FtTrainingConfig TrainFastText FtTrainingConfig$FtLoss]
            [ai.djl.basicdataset.nlp CookingStackExchange]
            [ai.djl.basicdataset RawDataset]
            [java.nio.file.attribute FileAttribute]))
+
+(defn opts-docu []
+  (->>
+   (FtTrainingConfig/builder)
+   (clojure.reflect/reflect)
+   :members
+   (filter #(clojure.string/starts-with? (:name %) "opt"))
+   (map #(hash-map :name (csk/->kebab-case-keyword (clojure.string/replace (:name  %) "opt" ""))
+                   :type (first  (:parameter-types %))))))
 
 (defn make-dataset [path]
   (reify RawDataset
@@ -40,14 +50,17 @@
         (into-array Object [v]))))
   config)
 
+
+
 (defn train-ft [ds label-col text-col ft-training-config]
   (let [
+
         model-name "my-model"
-        model (FtModel. "my-model")
         temp-dir  (java.nio.file.Files/createTempDirectory "fasttext"
                                                            (into-array FileAttribute []))
         fasttext-file (java.nio.file.Files/createTempFile "fasttext" ".txt"
                                                           (into-array FileAttribute []))
+
         training-config
         (->
          (..  (FtTrainingConfig/builder)
@@ -55,20 +68,24 @@
               (setOutputDir temp-dir))
          (do-opts ft-training-config)
          .build)
-             
+
         model-file (str (.. temp-dir  toFile getPath)
                         "/"
-                        model-name  ".bin")]
-    (-> ds
-        (->fast-text-ds label-col text-col)
-        (->fast-text-file! fasttext-file))
-    (.. model
-        (fit training-config (make-dataset fasttext-file))) ;; (.. (CookingStackExchange/builder) build)
+                        model-name  ".bin")
+        _ (-> ds
+              (->fast-text-ds label-col text-col)
+              (->fast-text-file! fasttext-file))]
 
 
+
+    (TrainFastText/textClassification training-config (make-dataset fasttext-file))
+    
     {
-     :labels (map str (distinct (get ds label-col)))
+     :classes (->
+               (get ds label-col)
+               distinct)
      :model-file model-file}))
+
 
 
 (defn ->maps [classification]
@@ -77,22 +94,26 @@
    (map #(hash-map :class-name (.getClassName %)
                    :probability (.getProbability %)))))
 
-(defn classify [model text top-k]
-  (let [raw-classification (->maps (.classify (:ft-model model) text top-k))]
-    (def raw-classification raw-classification)
+
+(defn classify [model text top-k classes]
+  (let [raw-classification (->maps (.. model
+                                       getBlock
+                                       (classify text top-k)))]
     (if-not (empty? raw-classification)
       raw-classification
-      (map #(hash-map :class-name %
-                      :probability (/ 1 (count (:labels model))))
-       (:labels model)))))
+      (map
+       #(hash-map
+         :class-name (str %)
+         :probability (/ 1 (count (:labels model))))
+       classes))))
 
-
-(defn predict-ft [feature-ds model top-k]
+(defn predict-ft [feature-ds model top-k classes]
+  (def model model)
   (let [
         texts (->  (tc/columns feature-ds :as-seq) first seq)]
 
     (map
-     #(classify model (str %) top-k)
+     #(classify model (str %) top-k classes)
      texts)))
 
 
@@ -125,7 +146,7 @@
 
         ft-prediction
         (->>
-         (predict-ft feature-ds thawed-model top-k)
+         (predict-ft feature-ds (:model thawed-model) top-k (:classes thawed-model))
          (map
           #(map (fn [m] (assoc m :id %1)) %2)
           (range)))
@@ -158,5 +179,9 @@
     model-instance))
 
 (ml/define-model! :clj-djl/fasttext train predict
-   {:thaw-fn (fn [model]
-               (assoc model :ft-model (load-ft-model (:model-file model))))})
+  {:documentation {:javadoc    "https://javadoc.io/doc/ai.djl.fasttext/fasttext-engine/latest/index.html"
+                   :user-guide "https://djl.ai/extensions/fasttext/"}
+   :options (opts-docu)
+   :thaw-fn (fn [model]
+              (assoc model :model
+                     (load-ft-model (:model-file model))))})
