@@ -104,7 +104,7 @@
       (map
        #(hash-map
          :class-name (str %)
-         :probability (/ 1 (count (:labels model))))
+         :probability (/ 1 (count classes)))
        classes))))
 
 (defn predict-ft [feature-ds model top-k classes]
@@ -137,13 +137,15 @@
   [feature-ds thawed-model {:keys [target-columns
                                    target-categorical-maps
                                    top-k
-                                   options]}]
+                                   options] :as model}]
   (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
 
   (let [top-k (or top-k 2)
 
         _ (assert (> top-k 1) "top-k need to be at least 2")
 
+        _ (assert (:model thawed-model) "No model given in 'thawed-model'")
+        _ (assert (:classes thawed-model) "No classes in thawed mode")
         ft-prediction
         (->>
          (predict-ft feature-ds (:model thawed-model) top-k (:classes thawed-model))
@@ -183,5 +185,6 @@
                    :user-guide "https://djl.ai/extensions/fasttext/"}
    :options (opts-docu)
    :thaw-fn (fn [model]
+              (assert (:model-file model) ":model-file not given in `model`")
               (assoc model :model
                      (load-ft-model (:model-file model))))})
