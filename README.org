@@ -1,4 +1,8 @@
+(https://img.shields.io/clojars/v/org.scicloj/scicloj.ml.clj-djl.svg)]
+(https://clojars.org/org.scicloj/scicloj.ml.clj-djl)
+
 #+TITLE: scicloj.ml.clj-djl
+
 
 clj-djl (incl. fasttext) models for metamorph.ml and scicloj.ml
 
