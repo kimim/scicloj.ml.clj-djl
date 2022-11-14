@@ -2,8 +2,7 @@
 
 ## unreleased
 
-- added LDA QDA RDA FLD]
+- upgrade to clj-djl/clj-djl 0.1.9
+- more asserts
 
 ## 0.1.11
-
-- fixed predictions with un-predicted labels
