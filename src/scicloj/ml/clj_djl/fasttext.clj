@@ -174,7 +174,6 @@
     predictions-with-label))
 
 (defn load-ft-model [path]
-  (prn :load-model path)
   (let [model-instance (FtModel. "my-model")]
 
     (.load model-instance (.toPath (io/file path)))
