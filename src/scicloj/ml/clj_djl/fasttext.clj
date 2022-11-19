@@ -1,15 +1,18 @@
 (ns scicloj.ml.clj-djl.fasttext
-  (:require [clojure.java.io :as io]
-            [tablecloth.api :as tc]
-            [tech.v3.dataset :as ds]
-            [tech.v3.dataset.categorical :as ds-cat]
-            [camel-snake-kebab.core :as csk]
-            [scicloj.metamorph.ml :as ml]
-            [clojure.reflect])
-  (:import [ai.djl.fasttext FtModel FtTrainingConfig TrainFastText FtTrainingConfig$FtLoss]
-           [ai.djl.basicdataset.nlp CookingStackExchange]
-           [ai.djl.basicdataset RawDataset]
-           [java.nio.file.attribute FileAttribute]))
+  (:require
+   [camel-snake-kebab.core :as csk]
+   [clojure.java.io :as io]
+   [clojure.reflect]
+   [clojure.string]
+   [scicloj.metamorph.ml :as ml]
+   [tablecloth.api :as tc]
+   [tech.v3.dataset :as ds]
+   [tech.v3.dataset.categorical :as ds-cat]
+   [tech.v3.dataset.modelling])
+  (:import
+   (ai.djl.basicdataset RawDataset)
+   (ai.djl.fasttext FtModel FtTrainingConfig TrainFastText)
+   (java.nio.file.attribute FileAttribute)))
 
 (defn opts-docu []
   (->>
@@ -108,7 +111,6 @@
        classes))))
 
 (defn predict-ft [feature-ds model top-k classes]
-  (def model model)
   (let [
         texts (->  (tc/columns feature-ds :as-seq) first seq)]
 
