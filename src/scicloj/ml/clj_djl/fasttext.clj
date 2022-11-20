@@ -54,7 +54,6 @@
   config)
 
 
-
 (defn train-ft [ds label-col text-col ft-training-config]
   (let [
 
@@ -80,7 +79,7 @@
               (->fast-text-file! fasttext-file))]
 
 
-
+    (.. temp-dir toFile deleteOnExit)
     (TrainFastText/textClassification training-config (make-dataset fasttext-file))
     (java.nio.file.Files/delete fasttext-file)
     {
