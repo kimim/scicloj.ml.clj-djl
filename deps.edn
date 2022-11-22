@@ -1,7 +1,7 @@
 {:paths ["src" "target/classes"]
  :deps {org.clojure/clojure                {:mvn/version "1.10.3"}
         scicloj/metamorph.ml               {:mvn/version "0.6.0"}
-        clj-djl/clj-djl {:mvn/version "0.1.9"}
+        clj-djl/clj-djl                    {:mvn/version "0.1.9"}
         ai.djl.fasttext/fasttext-engine    {:mvn/version "0.17.0"}
         ai.djl/basicdataset                {:mvn/version "0.17.0"}}
  
