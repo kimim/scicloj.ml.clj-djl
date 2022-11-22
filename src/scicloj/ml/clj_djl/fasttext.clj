@@ -83,9 +83,10 @@
     (TrainFastText/textClassification training-config (make-dataset fasttext-file))
     (java.nio.file.Files/delete fasttext-file)
     {
-     :classes (->
+     :classes (->>
                (get ds label-col)
-               distinct)
+               distinct
+               (into #{}))
      :model-file model-file
      :model-dir (.getAbsolutePath (.toFile temp-dir))}))
 
