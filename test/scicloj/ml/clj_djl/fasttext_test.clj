@@ -23,10 +23,6 @@
         (ml/train (-> primary
                       (tech.v3.dataset.modelling/set-inference-target :is.primary))
                   {:model-type :clj-djl/fasttext})
-        ;; :ft-training-config {:epoch 1}
-
-
-
         prob-distribution
         (ml/predict (ds/head primary) (assoc model
                                              :top-k 3))]
