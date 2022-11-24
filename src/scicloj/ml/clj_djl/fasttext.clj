@@ -178,6 +178,7 @@
          (tech.v3.dataset.modelling/probability-distributions->label-column
           predictions-ds
           target-colname)
+         ;;  TODO target-column has now index, not columns names
          (ds/update-column target-colname #(map int %))
          (ds/update-column target-colname
                            #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
@@ -186,6 +187,11 @@
     (-> predictions-with-label
         (ds/update-column target-colname
                           #(vary-meta % assoc :column-type :prediction)))))
+
+
+
+
+
 
 (defn load-ft-model [path]
   (let [model-instance (FtModel. "my-model")]
