@@ -143,7 +143,10 @@
                                    options] :as model}]
   (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
 
-  (let [top-k (or top-k 2)
+
+
+  (let [target-colname (first target-columns)
+        top-k (or top-k (-> target-categorical-maps (get target-colname) :lookup-table count))
 
         _ (assert (> top-k 1) "top-k need to be at least 2")
 
@@ -162,6 +165,7 @@
          ft-prediction
          flatten
          ds/->dataset
+         (tc/add-or-replace-column :class-name (fn [ds] (map #(Integer/parseInt %) (:class-name ds))))
          (tc/pivot->wider [:class-name] [:probability] {:drop-missing? false})
          (tc/order-by :id)
          (ds/drop-columns [:id]))
@@ -171,10 +175,15 @@
         (->
          (tech.v3.dataset.modelling/probability-distributions->label-column
           predictions-ds
-          (first target-columns))
-         (ds-cat/reverse-map-categorical-xforms))]
+          target-colname)
+         (ds/update-column target-colname #(map int %))
+         (ds/update-column target-colname
+                           #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
 
-    predictions-with-label))
+
+    (-> predictions-with-label
+        (ds/update-column target-colname
+                          #(vary-meta % assoc :column-type :prediction)))))
 
 (defn load-ft-model [path]
   (let [model-instance (FtModel. "my-model")]
