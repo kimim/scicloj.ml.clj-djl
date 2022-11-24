@@ -182,7 +182,7 @@
          (ds/update-column target-colname
                            #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
 
-
+    (.close (:model thawed-model))
     (-> predictions-with-label
         (ds/update-column target-colname
                           #(vary-meta % assoc :column-type :prediction)))))
