@@ -76,12 +76,14 @@
                         model-name  ".bin")
         _ (-> ds
               (->fast-text-ds label-col text-col)
-              (->fast-text-file! fasttext-file))]
+              (->fast-text-file! fasttext-file))
 
 
-    (.. temp-dir toFile deleteOnExit)
-    (TrainFastText/textClassification training-config (make-dataset fasttext-file))
+        _ (.. temp-dir toFile deleteOnExit)
+        ft-text-classification (TrainFastText/textClassification training-config (make-dataset fasttext-file))]
+
     (java.nio.file.Files/delete fasttext-file)
+    (.close ft-text-classification)
     {
      :classes (->>
                (get ds label-col)
