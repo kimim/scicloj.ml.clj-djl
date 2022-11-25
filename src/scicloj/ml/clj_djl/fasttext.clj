@@ -172,15 +172,22 @@
          (tc/order-by :id)
          (ds/drop-columns [:id]))
 
-
-        predictions-with-label
+        predictions-with-label-index
         (->
          (tech.v3.dataset.modelling/probability-distributions->label-column
           predictions-ds
-          target-colname)
-         (ds/update-column target-colname #(map int %))
-         (ds/update-column target-colname
-                           #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
+          target-colname))
+         
+
+        index->label-fn (zipmap (range)
+                                (map #(Integer/parseInt %)  (tc/column-names predictions-ds)))
+        predictions-with-label
+        (-> predictions-with-label-index
+            (ds/update-column target-colname #(map int %))
+            (ds/add-or-update-column target-colname (map index->label-fn (get predictions-with-label-index target-colname)))
+            (ds/update-column target-colname
+                              #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
+
 
     (.close (:model thawed-model))
     (-> predictions-with-label
