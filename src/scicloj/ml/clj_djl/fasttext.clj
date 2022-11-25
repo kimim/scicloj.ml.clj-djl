@@ -75,6 +75,7 @@
                         "/"
                         model-name  ".bin")
         _ (-> ds
+              (ds-cat/reverse-map-categorical-xforms)
               (->fast-text-ds label-col text-col)
               (->fast-text-file! fasttext-file))
 
@@ -143,9 +144,8 @@
                                    target-categorical-maps
                                    top-k
                                    options] :as model}]
+
   (assert  (= 1 (tc/column-count feature-ds)) "Dataset should have exactly one column.")
-
-
 
   (let [target-colname (first target-columns)
         top-k (or top-k (-> target-categorical-maps (get target-colname) :lookup-table count))
@@ -167,7 +167,6 @@
          ft-prediction
          flatten
          ds/->dataset
-         (tc/add-or-replace-column :class-name (fn [ds] (map #(Integer/parseInt %) (:class-name ds))))
          (tc/pivot->wider [:class-name] [:probability] {:drop-missing? false})
          (tc/order-by :id)
          (ds/drop-columns [:id]))
@@ -177,10 +176,8 @@
         (->
          (tech.v3.dataset.modelling/probability-distributions->label-column
           predictions-ds
-          target-colname)
-         (ds/update-column target-colname #(map int %))
-         (ds/update-column target-colname
-                           #(vary-meta % assoc :categorical-map (get target-categorical-maps target-colname))))]
+          target-colname))]
+
 
     (.close (:model thawed-model))
     (-> predictions-with-label
