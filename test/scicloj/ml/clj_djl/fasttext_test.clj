@@ -8,6 +8,7 @@
    [scicloj.metamorph.ml.loss :as loss]
    [scicloj.ml.clj-djl.fasttext]
    [tech.v3.dataset :as ds]
+   [tech.v3.dataset.categorical :as ds-cat]
    [tech.v3.dataset.modelling]))
 
 (defn delete-files-recursively
@@ -33,7 +34,7 @@
                                              :top-k 3))]
     ;; (println :model-dir (io/file (-> model :model-data :model-dir)))
     (delete-files-recursively (io/file (-> model :model-data :model-dir)))
-    (is (= [0 0 0 0 0] (prob-distribution :is.primary)))))
+    (is (= [0.0 0.0 0.0 0.0 0.0] (prob-distribution :is.primary)))))
 
 
 
@@ -64,7 +65,7 @@
     (is (= {"yes" 0, "no" 1, "unclear" 2}
            (-> fit-ctx :model :target-categorical-maps :is.primary :lookup-table)))
 
-    (is (= 0
+    (is (= 0.0
            (-> transform-result :metamorph/data :is.primary first)))))
 
 
@@ -87,3 +88,23 @@
                                {:evaluation-handler-fn identity})]
     (is (= {"yes" 100}
            (-> result first first :test-transform :ctx :metamorph/data (tech.v3.dataset.categorical/reverse-map-categorical-xforms) :is.primary frequencies)))))
+
+
+(deftest train-predict
+  (let [pipe
+        (mm/pipeline
+         (dsmm/set-inference-target :label)
+         (dsmm/categorical->number [:label] [] :int)
+         {:metamorph/id :model}
+         (ml/model {:model-type :clj-djl/fasttext}))
+
+        data (ds/->dataset {:text ["green" "red" "yellow"]
+                            :label ["green" "red" "yellow"]})
+        fit-ctx
+        (mm/fit data pipe)
+
+        transform-result
+        (mm/transform-pipe data pipe fit-ctx)]
+
+    (is (= ["green" "red" "yellow"]
+           (:label (ds-cat/reverse-map-categorical-xforms (:metamorph/data transform-result)))))))
