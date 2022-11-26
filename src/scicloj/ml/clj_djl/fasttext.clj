@@ -85,10 +85,6 @@
     (java.nio.file.Files/delete fasttext-file)
     (.close ft-text-classification)
     {
-     :classes (->>
-               (get ds label-col)
-               distinct
-               (into #{}))
      :model-file model-file
      :model-dir (.getAbsolutePath (.toFile temp-dir))}))
 
@@ -153,10 +149,11 @@
         _ (assert (> top-k 1) "top-k need to be at least 2")
 
         _ (assert (:model thawed-model) "No model given in 'thawed-model'")
-        _ (assert (:classes thawed-model) "No classes in thawed mode")
+        _ (assert (-> target-categorical-maps (get target-colname) :lookup-table keys) "No classes in target-categorical-maps")
         ft-prediction
         (->>
-         (predict-ft feature-ds (:model thawed-model) top-k (:classes thawed-model))
+         (predict-ft feature-ds (:model thawed-model) top-k
+                     (-> target-categorical-maps (get target-colname) :lookup-table keys))
          (map
           #(map (fn [m] (assoc m :id %1)) %2)
           (range)))

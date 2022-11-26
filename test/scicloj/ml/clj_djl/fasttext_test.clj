@@ -53,8 +53,7 @@
         transform-result
         (mm/transform-pipe primary pipe fit-ctx)]
 
-    (is (= #{0 1 2}
-           (-> fit-ctx :model :model-data :classes)))
+    
 
     (is (some?
          (-> fit-ctx :model :model-data :model-file)))
